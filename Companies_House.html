@@ -372,6 +372,9 @@ summary {
 <div id="aim" class="section level2">
 <h2>AIM</h2>
 <p>This project explores how to retrieve data from the <a href="https://developer.companieshouse.gov.uk/api/docs/">Companies House API</a>.</p>
+<pre class="r"><code># Keep API key in separate .txt file for security and load into object as a char string
+foz_key &lt;- readtext(&quot;C:/AHF/Keys/CH_API_Key.txt&quot;)
+foz_key &lt;- as.character(foz_key$text)</code></pre>
 </div>
 
 

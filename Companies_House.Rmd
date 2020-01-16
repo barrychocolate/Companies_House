@@ -8,7 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here")
+list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here",
+                      "readtext")
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages, repos = "https://cloud.r-project.org/")
 
@@ -21,5 +22,8 @@ lapply(list_of_packages, library, character.only = TRUE)
 This project explores how to retrieve data from the [Companies House API](https://developer.companieshouse.gov.uk/api/docs/).
 
 ```{r }
+# Keep API key in separate .txt file for security and load into object as a char string
+foz_key <- readtext("C:/AHF/Keys/CH_API_Key.txt")
+foz_key <- as.character(foz_key$text)
 
 ```
