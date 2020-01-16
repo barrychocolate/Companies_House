@@ -25,7 +25,6 @@ This project explores how to retrieve data from the [Companies House API](https:
 To be able to explore and perform tests with the Companies House API, you need to register a [user account](https://developer.companieshouse.gov.uk/developer/signin) with Companies House, and then generate an [API key](https://developer.companieshouse.gov.uk/api/docs/index/gettingStarted/apikey_authorisation.html) for use in each API request.
 
 ```{r }
-<<<<<<< HEAD
 #API KEY
 #I store my api key outside the project so it is not uploaded to GitHub
 # You can replace the next two lines of code with the line below
@@ -65,8 +64,14 @@ headers(get_response)
 # Parse returned text with fromJSON()
 search_content <- fromJSON(content(get_response, as = "text",  encoding = "UTF-8"), simplifyDataFrame = TRUE)
 
-# The companies are contained within the returned json
-companies_returned <- as.data.frame(search_content[["items"]])
+#The data should be in a list
+typeof(search_content)
+
+# The companies are contained within the items section of the json
+companies_returned <- search_content[["items"]]
+
+View(companies_returned)
+
 
 datatable(head(companies_returned, 10))
 ```
