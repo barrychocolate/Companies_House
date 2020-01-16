@@ -8,9 +8,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT")
+list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here", "readtext")
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
-if(length(new_packages)) install.packages(new_packages)
+if(length(new_packages)) install.packages(new_packages, repos = "https://cloud.r-project.org/")
 
 #Load required packages
 lapply(list_of_packages, library, character.only = TRUE)
@@ -20,6 +20,51 @@ lapply(list_of_packages, library, character.only = TRUE)
 
 This project explores how to retrieve data from the [Companies House API](https://developer.companieshouse.gov.uk/api/docs/).
 
-```{r }
+## Set up a Companies House account
+To be able to explore and perform tests with the Companies House API, you need to register a [user account](https://developer.companieshouse.gov.uk/developer/signin) with Companies House, and then generate an [API key](https://developer.companieshouse.gov.uk/api/docs/index/gettingStarted/apikey_authorisation.html) for use in each API request.
 
+```{r }
+#API KEY
+#I store my api key outside the project so it is not uploaded to GitHub
+# You can replace the next two lines of code with the line below
+# my_key <- 'enter your api key'
+
+my_key <- readtext("C:/Analysis/R_Studio/keys/companies_house.txt")
+my_key <- as.character(my_key$text)
+
+user_text <- 'my@email.address this is a personal project to test retrieving data from the Companies House api'
+
+# Static URL 
+static_url <- 'https://api.companieshouse.gov.uk/'
+
+# urls for functions
+search_all_url <- paste0(static_url, 'search')
+search_companies_url <- paste0(static_url, 'search/companies')
+search_officer_url <- paste0(static_url, 'search/officers')
+search_disq_officer_url <- paste0(static_url, 'search/disqualified-officers')
+
+# query to search for
+ch_query <- 'Harley Davidson'
+
+query_list <- list(q = ch_query)
+
+# Get the authorities by passing the GET commmand the URL and the user text
+get_response <- GET(search_companies_url,  query = query_list, authenticate(my_key, ''))
+
+#Check status of response (200 is success)
+status_code(get_response)
+
+# Check http_type() of the response
+http_type(get_response)
+
+#list the headers
+headers(get_response)
+
+# Parse returned text with fromJSON()
+search_content <- fromJSON(content(get_response, as = "text",  encoding = "UTF-8"), simplifyDataFrame = TRUE)
+
+# The companies are contained within the returned json
+companies_returned <- as.data.frame(search_content[["items"]])
+
+datatable(head(companies_returned, 10))
 ```
