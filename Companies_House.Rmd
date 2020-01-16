@@ -8,12 +8,8 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-<<<<<<< HEAD
 list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here", "readtext")
-=======
-list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here",
-                      "readtext")
->>>>>>> f2e874c60dada28a27758bada8feb081cccee576
+
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages, repos = "https://cloud.r-project.org/")
 
@@ -71,11 +67,6 @@ search_content <- fromJSON(content(get_response, as = "text",  encoding = "UTF-8
 
 # The companies are contained within the returned json
 companies_returned <- as.data.frame(search_content[["items"]])
-=======
-# Keep API key in separate .txt file for security and load into object as a char string
-foz_key <- readtext("C:/AHF/Keys/CH_API_Key.txt")
-foz_key <- as.character(foz_key$text)
->>>>>>> f2e874c60dada28a27758bada8feb081cccee576
 
 datatable(head(companies_returned, 10))
 ```
