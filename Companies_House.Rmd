@@ -8,7 +8,7 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here", "readtext")
+list_of_packages <- c("rvest", "dplyr", "httr", "xml2", "jsonlite", "DT", "here", "readtext", "secret")
 
 new_packages <- list_of_packages[!(list_of_packages %in% installed.packages()[,"Package"])]
 if(length(new_packages)) install.packages(new_packages, repos = "https://cloud.r-project.org/")
@@ -22,18 +22,15 @@ lapply(list_of_packages, library, character.only = TRUE)
 This project explores how to retrieve data from the [Companies House API](https://developer.companieshouse.gov.uk/api/docs/).
 
 ## Set up a Companies House account
-To be able to explore and perform tests with the Companies House API, you need to register a [user account](https://developer.companieshouse.gov.uk/developer/signin) with Companies House, and then generate an [API key](https://developer.companieshouse.gov.uk/api/docs/index/gettingStarted/apikey_authorisation.html) for use in each API request.
+To be able to explore and perform tests with the Companies House API, you need to register a [user account](https://developer.companieshouse.gov.uk/developer/signin) with Companies House, and then generate an [API key](https://developer.companieshouse.gov.uk/api/docs/index/gettingStarted/apikey_authorisation.html) for use in each API request.  You also need to provide the IP address that you will be requesting from (remember to update it if you get any 403 errors).
 
 ```{r }
-#API KEY
-#I store my api key outside the project so it is not uploaded to GitHub
-# You can replace the next two lines of code with the line below
+# API KEY
+# I store my api keys using the secret package so they are encrypted and can only be accessed by me
+# You can replace the next line of code with the line below if you don't use the Secret package
 # my_key <- 'enter your api key'
 
-my_key <- readtext("C:/Analysis/R_Studio/keys/companies_house.txt")
-my_key <- as.character(my_key$text)
-
-user_text <- 'my@email.address this is a personal project to test retrieving data from the Companies House api'
+my_key <- get_secret("Companies_House_API_KEY", key = local_key() , vault = here())
 
 # Static URL 
 static_url <- 'https://api.companieshouse.gov.uk/'
@@ -52,26 +49,41 @@ query_list <- list(q = ch_query)
 # Get the authorities by passing the GET commmand the URL and the user text
 get_response <- GET(search_companies_url,  query = query_list, authenticate(my_key, ''))
 
-#Check status of response (200 is success)
-status_code(get_response)
+#Check status of response (
+if (status_code(get_response)==200)
+  {
+  # 200 = sucessful
+  
+  # Check http_type() of the response
+  http_type(get_response)
+  
+  #list the headers
+  headers(get_response)
+  
+  # Parse returned text with fromJSON()
+  search_content <- fromJSON(content(get_response, as = "text",  encoding = "UTF-8"), simplifyDataFrame = TRUE)
+  
+  #The data should be in a list
+  typeof(search_content)
+  
+  # The companies are contained within the items section of the json
+  companies_returned <- search_content[["items"]]
+  
+  # Keep the key columns that we need
+  companies_returned <- subset(companies_returned, select = c(company_number, title, date_of_creation, date_of_cessation, address_snippet) )
+  
+  #Display the data in a datatable
+  datatable(head(companies_returned, 10))
+  
+} else if (status_code(get_response)==429)
+{
+  # Rate limit reached
+  # limit is currently 600 requests in 5 minutes - wait before tyring again
+  
+}else if (status_code(get_response)==403)
+{
+  # Access Forbidden
+  # May be caused by api key being incorect or the ip address has not been added to companies house account
 
-# Check http_type() of the response
-http_type(get_response)
-
-#list the headers
-headers(get_response)
-
-# Parse returned text with fromJSON()
-search_content <- fromJSON(content(get_response, as = "text",  encoding = "UTF-8"), simplifyDataFrame = TRUE)
-
-#The data should be in a list
-typeof(search_content)
-
-# The companies are contained within the items section of the json
-companies_returned <- search_content[["items"]]
-
-View(companies_returned)
-
-
-datatable(head(companies_returned, 10))
+  }
 ```
